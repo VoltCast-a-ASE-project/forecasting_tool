@@ -3,6 +3,7 @@ from typing import Optional, List
 
 class Device(BaseModel):
     id: str
+    device_name: str # eg. "Tesla Model 3 von Matthias"
     type: str  # e.g., "ev", "washer"
     consumption: float  # in kWh
 
