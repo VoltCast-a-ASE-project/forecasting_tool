@@ -22,4 +22,4 @@ class ForecastingService:
     def excess_power_duration(self, production: list, consumption: float) -> float:
         # Calculate hours where production > consumption
         excess_hours = sum(1 for p in production if p > consumption)
-        return excess_hours
+        return float(excess_hours)
