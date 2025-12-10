@@ -9,6 +9,10 @@ service = ForecastingService()
 def read_root():
     return {"message": "Forecasting Tool Microservice"}
 
+@app.get("/hello")
+def hello_frontend():
+    return {"message": "Hello from the Forecasting Tool Microservice"}
+
 @app.post("/forecast/production")
 def forecast_production(weather: WeatherData, days: int = 1):
     return service.predict_production(weather, days)

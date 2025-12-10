@@ -11,6 +11,11 @@ def test_read_root():
     assert response.status_code == 200
     assert response.json() == {"message": "Forecasting Tool Microservice"}
 
+def test_hello_frontend():
+    response = client.get("/hello")
+    assert response.status_code == 200
+    assert response.json() == {"message": "Hello from the Forecasting Tool Microservice"}
+
 def test_forecast_production():
     weather_data = {
         "temperature": 25.0,
