@@ -9,7 +9,7 @@ client = TestClient(app)
 def test_read_root():
     response = client.get("/")
     assert response.status_code == 200
-    assert response.json() == {"message": "Forecasting Tool Microservice"}
+    assert response.json() == {"message": "Hello from the Forecasting Tool Microservice"}
 
 def test_forecast_production():
     weather_data = {
