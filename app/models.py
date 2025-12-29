@@ -8,7 +8,7 @@ class User(Base):
     __tablename__ = "users"
     id = Column(String, primary_key=True, index=True)
     email = Column(String, unique=True, index=True)
-    pv_sytems = relationship("PVSystem", back_population="owner")
+    pv_sytems = relationship("PVSystem", back_populates="pv_sytems")
 
 class PVSystem(Base):
     __tablename__ = "pv_sytems"
@@ -37,12 +37,6 @@ class PVSystemRead(PVSystemBase):
     id: int 
     user_id: str
 
-class Device(BaseModel):
-    id: str
-    device_name: str # eg. "Tesla Model 3 von Matthias"
-    type: str  # e.g., "ev", "washer"
-    consumption: float  # in kWh
-
 class WeatherData(BaseModel):
     temperature: float
     humidity: float
@@ -55,10 +49,3 @@ class PVData(BaseModel):
     output_power: float
     battery_soc: float
 
-class OptimalTimeRequest(BaseModel):
-    device: Device
-    production: List[float]
-
-class ExcessDurationRequest(BaseModel):
-    production: List[float]
-    consumption: float
