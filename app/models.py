@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional, List
+from datetime import datetime
 from sqlalchemy import Column, Integer, String, Float, ForeignKey
 from sqlalchemy.orm import relationship
 from .database import Base
@@ -52,6 +53,19 @@ class WeatherData(BaseModel):
     wind_speed: float
     cloud_cover: float
     solar_irradiance: Optional[float] = None
+
+class ForecastRequest(BaseModel):
+    days: int = Field(ge=1, le=7, default=2, description="Days to forecast (1-7)")
+
+class ProductionForecast(BaseModel):
+    timestamp: datetime
+    power_kw: float = Field(ge=0, description="AC power output in kilowatts")
+    energy_kwh: Optional[float] = Field(default=None, ge=0, description="Energy produced in this hour in kWh")
+
+class ForecastResponse(BaseModel):
+    system_id: int
+    total_energy_kwh: float = Field(ge=0, description="Total energy production in kWh")
+    forecast: List[ProductionForecast]
 
 class PVData(BaseModel):
     dc_input: float
