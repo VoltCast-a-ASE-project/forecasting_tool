@@ -3,10 +3,14 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from fastapi.testclient import TestClient
+from fastapi import HTTPException, status
 
 from app.main import app
 from app.database import get_db, Base
 from app.models import User, PVSystem
+
+# Set TESTING environment variable
+os.environ["TESTING"] = "true"
 
 # Use an in-memory SQLite database for testing
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
@@ -30,6 +34,7 @@ def db_session():
         session.close()
         Base.metadata.drop_all(bind=engine)
 
+
 @pytest.fixture(scope="function")
 def client(db_session):
     """
@@ -42,9 +47,11 @@ def client(db_session):
             db_session.close()
     
     app.dependency_overrides[get_db] = override_get_db
+    
     with TestClient(app) as test_client:
         yield test_client
     app.dependency_overrides.clear()
+
 
 @pytest.fixture
 def test_user(db_session):
@@ -55,7 +62,10 @@ def test_user(db_session):
     db_session.add(user)
     db_session.commit()
     db_session.refresh(user)
+    # Store user_id to avoid detached session issues
+    user.user_id = user.id
     return user
+
 
 @pytest.fixture
 def auth_headers(test_user):
