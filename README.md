@@ -55,8 +55,8 @@ Creates a new PV system for the authenticated user.
 | :--- | :--- | :--- | :--- |
 | `id` | Integer | - | Unique identifier for the system (auto-generated). |
 | `name` | String | - | User-defined name for the system. |
-| `latitude` | Float | Degrees (°) | Geographic latitude of the system's location. |
-| `longitude` | Float | Degrees (°) | Geographic longitude of the system's location. |
+| `latitude` | Float | Degrees (°) | Geographic latitude of the system's location (-90° to +90°). Positive = Northern Hemisphere, Negative = Southern Hemisphere. |
+| `longitude` | Float | Degrees (°) | Geographic longitude of the system's location (-180° to +180°). Positive = Eastern Hemisphere, Negative = Western Hemisphere. |
 | `kwp` | Float | Kilowatts peak (kWp) | Installed peak power of the PV system. |
 | `tilt` | Float | Degrees (°) | Tilt angle of the panels from horizontal. |
 | `azimuth` | Float | Degrees (°) | Orientation of the panels (0°=N, 90°=E, 180°=S, 270°=W). |

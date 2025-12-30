@@ -1,11 +1,50 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, List
+from sqlalchemy import Column, Integer, String, Float, ForeignKey
+from sqlalchemy.orm import relationship
+from .database import Base
 
-class Device(BaseModel):
-    id: str
-    device_name: str # eg. "Tesla Model 3 von Matthias"
-    type: str  # e.g., "ev", "washer"
-    consumption: float  # in kWh
+class User(Base):
+    __tablename__ = "users"
+    id = Column(String, primary_key=True, index=True)
+    email = Column(String, unique=True, index=True)
+    pv_systems = relationship("PVSystem", back_populates="user")
+
+class PVSystem(Base):
+    __tablename__ = "pv_systems"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(String, ForeignKey("users.id"))
+    name = Column(String)
+    latitude = Column(Float)
+    longitude = Column(Float)
+    kwp = Column(Float)
+    tilt = Column(Float)
+    azimuth = Column(Float)
+    user = relationship("User", back_populates="pv_systems")
+
+class PVSystemBase(BaseModel):
+    name: str
+    latitude: float = Field(
+        ge=-90, le=90, 
+        description="Latitude must be between -90° (South Pole) and 90° (North Pole). Positive values = Northern Hemisphere, Negative values = Southern Hemisphere"
+    )
+    longitude: float = Field(
+        ge=-180, le=180, 
+        description="Longitude must be between -180° and 180°. Positive values = Eastern Hemisphere, Negative values = Western Hemisphere"
+    )
+    kwp: float = Field(gt=0, description="kWp must be greater than 0")
+    tilt: float = Field(ge=0, le=90, description="Tilt angle must be between 0 and 90 degrees")
+    azimuth: float = Field(ge=0, lt=360, description="Azimuth must be between 0 and 360 degrees")
+
+class PVSystemCreate(PVSystemBase):
+    pass
+
+class PVSystemRead(PVSystemBase):
+    id: int 
+    user_id: str
+
+    class Config:
+        from_attributes = True
 
 class WeatherData(BaseModel):
     temperature: float
@@ -18,11 +57,3 @@ class PVData(BaseModel):
     dc_input: float
     output_power: float
     battery_soc: float
-
-class OptimalTimeRequest(BaseModel):
-    device: Device
-    production: List[float]
-
-class ExcessDurationRequest(BaseModel):
-    production: List[float]
-    consumption: float
