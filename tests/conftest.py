@@ -39,6 +39,7 @@ def db_session():
 def client(db_session):
     """
     Creates a test client with a dependency override to use the test database.
+    Uses mock authentication by default for backward compatibility.
     """
     def override_get_db():
         try:
@@ -46,11 +47,17 @@ def client(db_session):
         finally:
             db_session.close()
     
+    # Enable mock authentication for legacy tests
+    os.environ["TESTING"] = "true"
+    
     app.dependency_overrides[get_db] = override_get_db
     
     with TestClient(app) as test_client:
         yield test_client
     app.dependency_overrides.clear()
+    
+    # Reset to real JWT auth for integration tests
+    os.environ["TESTING"] = "false"
 
 
 @pytest.fixture
@@ -76,3 +83,27 @@ def auth_headers(test_user):
     # For testing, we can mock the dependency that decodes the token.
     # For now, we'll just use a placeholder header.
     return {"Authorization": f"Bearer mock-token-for-{test_user.id}"}
+
+
+@pytest.fixture
+def client_with_mock_auth(db_session):
+    """
+    Creates a test client with mock authentication for legacy tests.
+    """
+    def override_get_db():
+        try:
+            yield db_session
+        finally:
+            db_session.close()
+    
+    # Set TESTING=true to enable MockAuthService
+    os.environ["TESTING"] = "true"
+    
+    app.dependency_overrides[get_db] = override_get_db
+    
+    with TestClient(app) as test_client:
+        yield test_client
+    app.dependency_overrides.clear()
+    
+    # Reset TESTING environment
+    os.environ["TESTING"] = "false"
