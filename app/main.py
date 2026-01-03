@@ -5,13 +5,16 @@ from typing import List
 import os
 
 from .services import ForecastingService
-from .database import get_db
-from .models import User, PVSystem, PVSystemCreate, PVSystemRead
+from .database import get_db, engine
+from .models import User, PVSystem, PVSystemCreate, PVSystemRead, Base
 from .auth.auth_implementations import get_auth_service, AuthServiceInterface
 
 app = FastAPI()
 service = ForecastingService()
 security = HTTPBearer()
+
+# Create database tables
+Base.metadata.create_all(bind=engine)
 
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer(auto_error=False)),

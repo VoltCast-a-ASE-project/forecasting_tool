@@ -1,14 +1,15 @@
 from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Float, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from .database import Base
 
 class User(Base):
     __tablename__ = "users"
     id = Column(String, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True)
+    email = Column(String, unique=True, index=True, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
     pv_systems = relationship("PVSystem", back_populates="user")
 
 class PVSystem(Base):

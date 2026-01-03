@@ -10,3 +10,5 @@ sqlalchemy==1.4.53
 pytest-cov
 pvlib
 httpx
+PyJWT==2.8.0
+python-dotenv==1.0.0
