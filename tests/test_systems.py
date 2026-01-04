@@ -79,7 +79,7 @@ def test_create_pv_system_invalid_data(client, auth_headers):
     response = client.post("/systems", json=system_data, headers=auth_headers)
 
     # 3. Assert: The request should be rejected due to validation error
-    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
     detail = response.json()["detail"][0]
     assert "kwp" in detail["loc"]
     assert "greater than 0" in detail["msg"]
@@ -143,7 +143,7 @@ def test_create_pv_system_invalid_latitude(client, auth_headers):
     response = client.post("/systems", json=system_data, headers=auth_headers)
 
     # 3. Assert: The request should be rejected due to latitude validation error
-    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
     detail = response.json()["detail"][0]
     assert "latitude" in detail["loc"]
     assert "greater than or equal to 90" in detail["msg"] or "less than or equal to 90" in detail["msg"]
@@ -166,7 +166,7 @@ def test_create_pv_system_invalid_longitude(client, auth_headers):
     response = client.post("/systems", json=system_data, headers=auth_headers)
 
     # 3. Assert: The request should be rejected due to longitude validation error
-    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
     detail = response.json()["detail"][0]
     assert "longitude" in detail["loc"]
     assert "greater than or equal to 180" in detail["msg"] or "less than or equal to 180" in detail["msg"]

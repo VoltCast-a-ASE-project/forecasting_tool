@@ -1,5 +1,6 @@
 import pvlib
 import pandas as pd
+from datetime import datetime, timedelta, timezone
 from typing import Dict, List
 
 from .models import PVSystem
@@ -142,18 +143,33 @@ class ForecastingService:
         total_energy_kwh = self.calculate_energy_kwh(power_series)
         
         forecast_data = []
-        for timestamp, power_kw in power_series.items():
+        for index in power_series.index:
+            power_kw = power_series[index]
             # Calculate energy for this hour
             energy_kwh = power_kw  # kW for 1 hour = kWh
             
             forecast_data.append({
-                'timestamp': timestamp.isoformat(),
+                'timestamp': str(index),
                 'power_kw': round(power_kw, 2),
                 'energy_kwh': round(energy_kwh, 2)
             })
         
+        now = datetime.now(timezone.utc)
         return {
             'system_id': system_id,
             'total_energy_kwh': round(total_energy_kwh, 2),
+            'forecast_from': now,
+            'forecast_to': now + timedelta(days=7),
+            'forecast_hours': len(power_series),
+            'forecast': forecast_data
+        }
+        
+        now = datetime.now(timezone.utc)
+        return {
+            'system_id': system_id,
+            'total_energy_kwh': round(total_energy_kwh, 2),
+            'forecast_from': now,
+            'forecast_to': now + timedelta(days=7),
+            'forecast_hours': len(power_series),
             'forecast': forecast_data
         }

@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from .database import Base
@@ -9,7 +9,7 @@ class User(Base):
     __tablename__ = "users"
     id = Column(String, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     pv_systems = relationship("PVSystem", back_populates="user")
 
 class PVSystem(Base):
@@ -45,8 +45,7 @@ class PVSystemRead(PVSystemBase):
     id: int 
     user_id: str
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 class WeatherData(BaseModel):
     temperature: float
@@ -56,7 +55,12 @@ class WeatherData(BaseModel):
     solar_irradiance: Optional[float] = None
 
 class ForecastRequest(BaseModel):
-    days: int = Field(ge=1, le=7, default=2, description="Days to forecast (1-7)")
+    days: int = Field(
+        default=7, 
+        ge=1, 
+        le=7, 
+        description="Anzahl Tage für Vorhersage (immer 7)"
+    )
 
 class ProductionForecast(BaseModel):
     timestamp: datetime
@@ -66,7 +70,10 @@ class ProductionForecast(BaseModel):
 class ForecastResponse(BaseModel):
     system_id: int
     total_energy_kwh: float = Field(ge=0, description="Total energy production in kWh")
-    forecast: List[ProductionForecast]
+    forecast_from: datetime = Field(description="Start der Vorhersage")
+    forecast_to: datetime = Field(description="Ende der Vorhersage") 
+    forecast_hours: int = Field(ge=0, description="Anzahl der Vorhersage-Stunden")
+    forecast: List[ProductionForecast] = Field(default=[], description="Stündliche Vorhersagen")
 
 class PVData(BaseModel):
     dc_input: float
