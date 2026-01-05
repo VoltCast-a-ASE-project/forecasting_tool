@@ -6,6 +6,10 @@ from typing import Dict, List
 from .models import PVSystem
 from .weather_client import OpenMeteoClient
 
+# Date/Time format constants
+DATETIME_FORMAT = "%Y-%m-%dT%H:%M"
+DAY_FORMAT = "%Y-%m-%dT"
+
 
 class ForecastingService:
     """Service for calculating PV power production forecasts based on weather data."""
@@ -65,7 +69,7 @@ class ForecastingService:
     
     def predict_production(self, pv_system: PVSystem, weather_df: pd.DataFrame) -> pd.Series:
         """
-        Calculate AC power production from weather data using pvlib.
+        Calculate AC power production from weather data using pvlib with proper system model.
         
         Args:
             pv_system: PV system configuration
@@ -77,35 +81,42 @@ class ForecastingService:
         if weather_df.empty:
             return pd.Series(dtype=float)
         
-        # Create pvlib system model
+        # Create pvlib system model from database parameters
         system_model = self.create_pv_system_model(pv_system)
         
-        # Prepare weather data for pvlib
-        # Convert temperature to Kelvin for pvlib
+        # Prepare weather data for pvlib using proper system model
+        # Convert temperature to Celsius for pvlib (pvlib handles units internally)
         weather_data = {
             'ghi': weather_df['ghi'],
             'dni': weather_df['dni'], 
             'dhi': weather_df['dhi'],
-            'temp_air': weather_df['temp_air'] + 273.15,  # Celsius to Kelvin
+            'temp_air': weather_df['temp_air'],  # Keep in Celsius
             'wind_speed': weather_df['wind_speed']
         }
         
-        # Calculate DC power from weather and PV system configuration
-        # Simplified PVWatts model using effective irradiance
-        g_poa_effective = weather_data['ghi']  # Simplified - in real implementation would calculate POA
-        temp_cell = weather_data['temp_air'] + 3  # Estimate cell temperature
+        # Calculate plane-of-array irradiance using system orientation
+        solar_position = pvlib.solarposition.get_solarposition(
+            weather_df.index,
+            pv_system.latitude,
+            pv_system.longitude
+        )
         
-        # Get module power at reference conditions (based on kwp rating)
-        pdc0 = pv_system.kwp * 1000  # Convert kWp to W
+        poa_irradiance = pvlib.irradiance.get_total_irradiance(
+            surface_tilt=pv_system.tilt,
+            surface_azimuth=pv_system.azimuth,
+            solar_zenith=solar_position['apparent_zenith'],
+            solar_azimuth=solar_position['azimuth'],
+            dni=weather_df['dni'],
+            ghi=weather_df['ghi'],
+            dhi=weather_df['dhi']
+        )
         
-        # Temperature coefficient (typical value)
-        gamma_pdc = -0.003
-        
+        # Calculate DC power using database system parameters
         dc_power = pvlib.pvsystem.pvwatts_dc(
-            g_poa_effective=g_poa_effective,
-            temp_cell=temp_cell,
-            pdc0=pdc0,
-            gamma_pdc=gamma_pdc
+            g_poa_effective=poa_irradiance['poa_global'],
+            temp_cell=weather_data['temp_air'] + 3,
+            pdc0=pv_system.kwp * 1000,  # Use database kwp directly
+            gamma_pdc=-0.003  # Use standard temperature coefficient
         )
         
         # Convert to AC power with typical inverter efficiency (95%)
@@ -113,7 +124,7 @@ class ForecastingService:
         ac_power = dc_power * inverter_efficiency
         
         # Convert to kilowatts and return as Series
-        ac_power_kw = ac_power / 1000
+        ac_power_kw = pd.Series(ac_power / 1000, index=weather_df.index)
         return ac_power_kw
     
     def calculate_energy_kwh(self, power_series: pd.Series) -> float:
@@ -159,7 +170,7 @@ class ForecastingService:
             
             # Tages-String formatieren (YYYY-MM-T)
             day_date = forecast_start + timedelta(days=day_index)
-            day_str = day_date.strftime("%Y-%m-%dT")
+            day_str = day_date.strftime(DAY_FORMAT)
             
             # Tagesenergie berechnen
             daily_energy = sum(float(power) for power in day_hours)
@@ -170,7 +181,7 @@ class ForecastingService:
                 # Timestamp für diese Stunde (YYYY-MM-DDTHH:MM)
                 timestamp = day_date.replace(hour=hour)
                 daily_forecasts.append({
-                    'timestamp': timestamp.strftime("%Y-%m-%dT%H:%M"),
+                    'timestamp': timestamp.strftime(DATETIME_FORMAT),
                     'power_kw': round(float(power_kw), 2)
                 })
             
@@ -183,18 +194,8 @@ class ForecastingService:
         return {
             'system_id': system_id,
             'total_energy_kwh': round(total_energy_kwh, 2),
-            'forecast_from': forecast_start.strftime("%Y-%m-%dT%H:%M"),
-            'forecast_to': (forecast_start + timedelta(days=7)).strftime("%Y-%m-%dT%H:%M"),
+            'forecast_from': forecast_start.strftime(DATETIME_FORMAT),
+            'forecast_to': (forecast_start + timedelta(days=7)).strftime(DATETIME_FORMAT),
             'forecast_hours': len(power_series),  # sollte 168 sein
             'forecast_list': forecast_list
-        }
-        
-        now = datetime.now(timezone.utc)
-        return {
-            'system_id': system_id,
-            'total_energy_kwh': round(total_energy_kwh, 2),
-            'forecast_from': now,
-            'forecast_to': now + timedelta(days=7),
-            'forecast_hours': len(power_series),
-            'forecast': forecast_data
         }

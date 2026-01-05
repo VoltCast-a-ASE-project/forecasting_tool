@@ -100,10 +100,21 @@ Generates a 7-day PV production forecast for a specific system belonging to the 
           "day": "2024-01-02T",
           "daily_energy_kwh": 45.2,
           "forecast": [
+{
+          "day": "2024-01-02T",
+          "daily_energy_kwh": 45.2,
+          "forecast": [
             { 
               "timestamp": "2024-01-02T12:00:00Z", 
               "power_kw": 4.5
             },
+            { 
+              "timestamp": "2024-01-02T13:00:00Z", 
+              "power_kw": 5.1
+            }
+            // ... 22 weitere Stunden für diesen Tag
+          ]
+        },
             { 
               "timestamp": "2024-01-02T13:00:00Z", 
               "power_kw": 5.1
