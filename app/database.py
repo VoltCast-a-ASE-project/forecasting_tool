@@ -5,7 +5,7 @@ from sqlalchemy.orm import declarative_base
 
 SQLALCHEMY_DATABAS_URL = os.getenv(
     "DATABASE_URL",
-    "sqlite:///./forecastin.db"
+    "sqlite:///./forecasting.db"
 )
 
 engine = create_engine(

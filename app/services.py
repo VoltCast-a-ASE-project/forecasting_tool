@@ -131,37 +131,62 @@ class ForecastingService:
     
     def format_forecast_response(self, system_id: int, power_series: pd.Series) -> Dict:
         """
-        Format forecasting results into API response format.
+        Format forecasting results into API response format with daily grouping.
         
         Args:
             system_id: PV system identifier
             power_series: Hourly power production in kW
             
         Returns:
-            Dict: Formatted forecast response
+            Dict: Formatted forecast response with daily structure
         """
+        # Validate power series length (only in production, not in tests)
+        if len(power_series) > 168:
+            raise ValueError(f"Maximum 168 hours allowed, got {len(power_series)}")
+        
         total_energy_kwh = self.calculate_energy_kwh(power_series)
         
-        forecast_data = []
-        for index in power_series.index:
-            power_kw = power_series[index]
-            # Calculate energy for this hour
-            energy_kwh = power_kw  # kW for 1 hour = kWh
+        forecast_list = []
+        # Immer 00:00 des aktuellen Tages als Startpunkt
+        forecast_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+        
+        for day_index in range(7):
+            day_start = day_index * 24
+            day_end = (day_index + 1) * 24
             
-            forecast_data.append({
-                'timestamp': str(index),
-                'power_kw': round(power_kw, 2),
-                'energy_kwh': round(energy_kwh, 2)
+            # Stunden für diesen Tag extrahieren
+            day_hours = power_series.iloc[day_start:day_end]
+            
+            # Tages-String formatieren (YYYY-MM-T)
+            day_date = forecast_start + timedelta(days=day_index)
+            day_str = day_date.strftime("%Y-%m-%dT")
+            
+            # Tagesenergie berechnen
+            daily_energy = sum(float(power) for power in day_hours)
+            
+            # Stündliche Forecasts für diesen Tag
+            daily_forecasts = []
+            for hour, power_kw in enumerate(day_hours):
+                # Timestamp für diese Stunde (YYYY-MM-DDTHH:MM)
+                timestamp = day_date.replace(hour=hour)
+                daily_forecasts.append({
+                    'timestamp': timestamp.strftime("%Y-%m-%dT%H:%M"),
+                    'power_kw': round(float(power_kw), 2)
+                })
+            
+            forecast_list.append({
+                'day': day_str,
+                'daily_energy_kwh': round(daily_energy, 2),
+                'forecast': daily_forecasts
             })
         
-        now = datetime.now(timezone.utc)
         return {
             'system_id': system_id,
             'total_energy_kwh': round(total_energy_kwh, 2),
-            'forecast_from': now,
-            'forecast_to': now + timedelta(days=7),
-            'forecast_hours': len(power_series),
-            'forecast': forecast_data
+            'forecast_from': forecast_start.strftime("%Y-%m-%dT%H:%M"),
+            'forecast_to': (forecast_start + timedelta(days=7)).strftime("%Y-%m-%dT%H:%M"),
+            'forecast_hours': len(power_series),  # sollte 168 sein
+            'forecast_list': forecast_list
         }
         
         now = datetime.now(timezone.utc)

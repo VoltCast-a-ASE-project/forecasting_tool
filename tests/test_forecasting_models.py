@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime, timezone, timedelta
 from pydantic import ValidationError
 
-from app.models import ForecastRequest, ProductionForecast, ForecastResponse
+from app.models import ForecastRequest, HourlyForecast, DayForecast, ForecastResponse
 
 
 class TestForecastingModels:
@@ -38,18 +38,24 @@ class TestForecastingModels:
         assert "input should be less than or equal to 7" in str(exc_info.value).lower()
 
     def test_forecast_response_valid_data(self):
-        """Test that ForecastResponse accepts valid data."""
+        """Test that ForecastResponse accepts valid data with daily structure."""
         now = datetime.now(timezone.utc)
-        forecast_data = [
-            ProductionForecast(
-                timestamp=datetime(2024, 1, 15, 10, 0, 0),
-                power_kw=4.5,
-                energy_kwh=4.5
+        hourly_forecasts = [
+            HourlyForecast(
+                timestamp="2024-01-15T10:00:00Z",
+                power_kw=4.5
             ),
-            ProductionForecast(
-                timestamp=datetime(2024, 1, 15, 11, 0, 0),
-                power_kw=5.2,
-                energy_kwh=5.2
+            HourlyForecast(
+                timestamp="2024-01-15T11:00:00Z",
+                power_kw=5.2
+            )
+        ]
+        
+        daily_forecasts = [
+            DayForecast(
+                day="2024-01-15T",
+                daily_energy_kwh=9.7,
+                forecast=hourly_forecasts
             )
         ]
 
@@ -58,15 +64,16 @@ class TestForecastingModels:
             total_energy_kwh=9.7,
             forecast_from=now,
             forecast_to=now + timedelta(days=7),
-            forecast_hours=168,
-            forecast=forecast_data
+            forecast_hours=48,
+            forecast_list=daily_forecasts
         )
         
         assert response.system_id == 123
         assert response.total_energy_kwh == 9.7
-        assert len(response.forecast) == 2
-        assert response.forecast[0].power_kw == 4.5
-        assert response.forecast[1].power_kw == 5.2
+        assert len(response.forecast_list) == 1
+        assert len(response.forecast_list[0].forecast) == 2
+        assert response.forecast_list[0].forecast[0].power_kw == 4.5
+        assert response.forecast_list[0].forecast[1].power_kw == 5.2
 
     def test_forecast_response_empty_forecast(self):
         """Test that ForecastResponse accepts empty forecast list."""
@@ -77,12 +84,12 @@ class TestForecastingModels:
             forecast_from=now,
             forecast_to=now + timedelta(days=7),
             forecast_hours=0,
-            forecast=[]
+            forecast_list=[]
         )
         
         assert response.system_id == 123
         assert response.total_energy_kwh == 0.0
-        assert len(response.forecast) == 0
+        assert len(response.forecast_list) == 0
 
     def test_forecast_response_negative_total_energy(self):
         """Test that ForecastResponse rejects negative total energy."""
@@ -94,41 +101,45 @@ class TestForecastingModels:
                 forecast_from=now,
                 forecast_to=now + timedelta(days=7),
                 forecast_hours=168,
-                forecast=[]
+                forecast_list=[]
             )
 
         assert "input should be greater than or equal to 0" in str(exc_info.value).lower()
 
-    def test_production_forecast_valid_timestamp(self):
-        """Test that ProductionForecast accepts valid timestamp."""
-        forecast = ProductionForecast(
-            timestamp=datetime(2024, 1, 15, 10, 0, 0),
-            power_kw=4.5,
-            energy_kwh=4.5
+    def test_hourly_forecast_valid_timestamp(self):
+        """Test that HourlyForecast accepts valid timestamp."""
+        forecast = HourlyForecast(
+            timestamp="2024-01-15T10:00:00Z",
+            power_kw=4.5
         )
         
-        assert forecast.timestamp == datetime(2024, 1, 15, 10, 0, 0)
+        assert forecast.timestamp == "2024-01-15T10:00:00Z"
         assert forecast.power_kw == 4.5
-        assert forecast.energy_kwh == 4.5
 
-    def test_production_forecast_negative_power(self):
-        """Test that ProductionForecast rejects negative power."""
+    def test_hourly_forecast_negative_power(self):
+        """Test that HourlyForecast rejects negative power."""
         with pytest.raises(ValidationError) as exc_info:
-            ProductionForecast(
-                timestamp=datetime(2024, 1, 15, 10, 0, 0),
-                power_kw=-1.0,
-                energy_kwh=4.5
+            HourlyForecast(
+                timestamp="2024-01-15T10:00:00Z",
+                power_kw=-1.0
             )
 
         assert "input should be greater than or equal to 0" in str(exc_info.value).lower()
 
-    def test_production_forecast_negative_energy(self):
-        """Test that ProductionForecast rejects negative energy."""
-        with pytest.raises(ValidationError) as exc_info:
-            ProductionForecast(
-                timestamp=datetime(2024, 1, 15, 10, 0, 0),
-                power_kw=4.5,
-                energy_kwh=-1.0
-            )
-
-        assert "input should be greater than or equal to 0" in str(exc_info.value).lower()
+    def test_day_forecast_structure(self):
+        """Test that DayForecast accepts valid hourly forecast list."""
+        hourly_forecasts = [
+            HourlyForecast(timestamp="2024-01-15T10:00:00Z", power_kw=4.5),
+            HourlyForecast(timestamp="2024-01-15T11:00:00Z", power_kw=5.2)
+        ]
+        
+        day_forecast = DayForecast(
+            day="2024-01-15T",
+            daily_energy_kwh=9.7,
+            forecast=hourly_forecasts
+        )
+        
+        assert day_forecast.day == "2024-01-15T"
+        assert len(day_forecast.forecast) == 2
+        assert day_forecast.forecast[0].power_kw == 4.5
+        assert day_forecast.forecast[1].power_kw == 5.2
