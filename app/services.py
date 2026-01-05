@@ -81,8 +81,6 @@ class ForecastingService:
         if weather_df.empty:
             return pd.Series(dtype=float)
         
-        # Create pvlib system model from database parameters
-        system_model = self.create_pv_system_model(pv_system)
         
         # Prepare weather data for pvlib using proper system model
         # Convert temperature to Celsius for pvlib (pvlib handles units internally)
