@@ -45,6 +45,15 @@ async def get_current_user(
 def read_root():
     return {"message": "Hello from Forecasting Tool Microservice"}
 
+@app.get("/health")
+def health_check():
+    """Health check endpoint for Docker/Kubernetes"""
+    return {
+        "status": "healthy", 
+        "service": "forecasting-ms",
+        "version": "1.0.0"
+    }
+
 @app.post("/forecast/production/{system_id}")
 def forecast_production(
     system_id: int,
