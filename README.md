@@ -158,50 +158,42 @@ Generates a 7-day PV production forecast for a specific system belonging to the 
     }
     ```
 *   **Response (200 OK)**:
+
     ```json
-    {
-      "system_id": 123,
-      "total_energy_kwh": 45.2,
-      "forecast_from": "2024-01-02T00:00:00Z",
-      "forecast_to": "2024-01-09T00:00:00Z",
-      "forecast_hours": 168,
-      "forecast_list": [
-        {
-          "day": "2024-01-02T",
-          "daily_energy_kwh": 45.2,
-          "forecast": [
-{
-          "day": "2024-01-02T",
-          "daily_energy_kwh": 45.2,
-          "forecast": [
-            { 
-              "timestamp": "2024-01-02T12:00:00Z", 
-              "power_kw": 4.5
-            },
-            { 
-              "timestamp": "2024-01-02T13:00:00Z", 
-              "power_kw": 5.1
-            }
-            // ... 22 more hours for this day
-          ]
-        },
-            { 
-              "timestamp": "2024-01-02T13:00:00Z", 
-              "power_kw": 5.1
-            }
-            // ... 22 more hours for this day 
-          ]
-        },
-        {
-          "day": "2024-01-03T",
-          "forecast": [
-            // 24 h of day 2 
-          ]
-        }
-        // ... 7 days overall 
-      ]
-    }
-    ```
+```json
+  {
+    system_id: 123,
+    total_energy_kwh: 45.2,
+    forecast_from: 2024-01-02T00:00:00Z,
+    forecast_to: 2024-01-09T00:00:00Z,
+    forecast_hours: 168,
+    forecast_list: [
+      {
+        day: 2024-01-02T,
+        daily_energy_kwh: 45.2,
+        forecast: [
+          { 
+            timestamp: 2024-01-02T12:00:00Z, 
+            power_kw: 4.5
+          },
+          { 
+            timestamp: 2024-01-02T13:00:00Z, 
+            power_kw: 5.1
+          }
+          // ... 22 more hours for this day
+        ]
+      },
+      {
+        day: 2024-01-03T,
+        daily_energy_kwh: 38.7,
+        forecast: [
+          // 24 h of day 2 
+        ]
+      }
+      // ... 5 more days 
+    ]
+  }    
+```
 
 ##### Forecast Data Model
 | Parameter | Type | Unit | Description |
