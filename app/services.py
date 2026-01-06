@@ -6,9 +6,9 @@ from typing import Dict, List
 from .models import PVSystem
 from .weather_client import OpenMeteoClient
 
-# Date/Time format constants
-DATETIME_FORMAT = "%Y-%m-%dT%H:%M"
-DAY_FORMAT = "%Y-%m-%dT"
+# Date/Time format constants (ISO 8601 compliant)
+DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"  # Full ISO 8601 timestamp
+DAY_FORMAT = "%Y-%m-%d"                # YYYY-MM-DD format
 
 
 class ForecastingService:
@@ -156,27 +156,27 @@ class ForecastingService:
         total_energy_kwh = self.calculate_energy_kwh(power_series)
         
         forecast_list = []
-        # Immer 00:00 des aktuellen Tages als Startpunkt
+         # Always use 00:00 of current day as starting point
         forecast_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
         
         for day_index in range(7):
             day_start = day_index * 24
             day_end = (day_index + 1) * 24
             
-            # Stunden für diesen Tag extrahieren
+            # Extract hours for this day
             day_hours = power_series.iloc[day_start:day_end]
             
-            # Tages-String formatieren (YYYY-MM-T)
+            # Format date string (YYYY-MM-DD)
             day_date = forecast_start + timedelta(days=day_index)
             day_str = day_date.strftime(DAY_FORMAT)
             
-            # Tagesenergie berechnen
+            # Calculate daily energy
             daily_energy = sum(float(power) for power in day_hours)
             
-            # Stündliche Forecasts für diesen Tag
+            # Create hourly forecasts for this day
             daily_forecasts = []
             for hour, power_kw in enumerate(day_hours):
-                # Timestamp für diese Stunde (YYYY-MM-DDTHH:MM)
+                # Create timestamp for this hour (ISO 8601)
                 timestamp = day_date.replace(hour=hour)
                 daily_forecasts.append({
                     'timestamp': timestamp.strftime(DATETIME_FORMAT),
