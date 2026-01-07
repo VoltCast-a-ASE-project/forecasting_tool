@@ -143,9 +143,9 @@ class TestForecastingService:
         assert 'forecast_from' in response
         assert 'forecast_to' in response
         assert 'forecast_list' in response
-        # Check forecast span is 7 days
-        forecast_from = datetime.fromisoformat(response['forecast_from'])
-        forecast_to = datetime.fromisoformat(response['forecast_to'])
+        # Check forecast span is 7 days (Python 3.10 compatible)
+        forecast_from = datetime.fromisoformat(response['forecast_from'].replace('Z', '+00:00'))
+        forecast_to = datetime.fromisoformat(response['forecast_to'].replace('Z', '+00:00'))
         forecast_span = forecast_to - forecast_from
         assert forecast_span.days == 7
 
