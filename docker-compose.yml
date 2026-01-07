@@ -1,0 +1,25 @@
+services:
+  forecasting-ms:
+    build: .
+    image: ghcr.io/voltcast-a-ase-project/forecasting_tool/forecasting-ms:latest
+    networks:
+      - VoltCast_Network
+    ports:
+      - "8084:8084"
+    expose:
+      - "8084"
+    environment:
+      - DATABASE_URL=sqlite:///./data/forecasting.db
+      - JWT_SECRET=${JWT_SECRET}
+      - ALGORITHM=${ALGORITHM:-HS256}
+      - TESTING=false
+      - MOCK_WEATHER_DATA=${MOCK_WEATHER_DATA:-false}
+    volumes:
+      - forecasting_data:/app/data  # Persistent SQLite database storage
+
+networks:
+  VoltCast_Network:
+    external: true
+
+volumes:
+  forecasting_data:

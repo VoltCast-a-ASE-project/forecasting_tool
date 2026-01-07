@@ -138,3 +138,10 @@ dmypy.json
 # OS
 .DS_Store
 Thumbs.db
+
+# Project-specific databases
+*.db
+
+# Manual test files
+test_manual_weather.py
+
