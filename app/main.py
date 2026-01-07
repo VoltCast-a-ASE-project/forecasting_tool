@@ -41,7 +41,7 @@ async def get_current_user(
     
     return current_user
 
-@app.get("/")
+@app.get("/forecast/hello")
 def read_root():
     return {"message": "Hello from Forecasting Tool Microservice"}
 
