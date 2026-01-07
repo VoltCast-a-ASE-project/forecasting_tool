@@ -158,42 +158,45 @@ Generates a 7-day PV production forecast for a specific system belonging to the 
     }
     ```
 *   **Response (200 OK)**:
-
     ```json
-```json
-  {
-    system_id: 123,
-    total_energy_kwh: 45.2,
-    forecast_from: 2024-01-02T00:00:00Z,
-    forecast_to: 2024-01-09T00:00:00Z,
-    forecast_hours: 168,
-    forecast_list: [
-      {
-        day: 2024-01-02T,
-        daily_energy_kwh: 45.2,
-        forecast: [
-          { 
-            timestamp: 2024-01-02T12:00:00Z, 
-            power_kw: 4.5
-          },
-          { 
-            timestamp: 2024-01-02T13:00:00Z, 
-            power_kw: 5.1
-          }
-          // ... 22 more hours for this day
-        ]
-      },
-      {
-        day: 2024-01-03T,
-        daily_energy_kwh: 38.7,
-        forecast: [
-          // 24 h of day 2 
-        ]
-      }
-      // ... 5 more days 
-    ]
-  }    
-```
+    {
+      "system_id": 123,
+      "total_energy_kwh": 45.2,
+      "forecast_from": "2024-01-02T00:00:00Z",
+      "forecast_to": "2024-01-09T00:00:00Z",
+      "forecast_hours": 168,
+      "forecast_list": [
+        {
+          "day": "2024-01-02",
+          "daily_energy_kwh": 45.2,
+          "forecast": [
+            { 
+              "timestamp": "2024-01-02T12:00:00Z", 
+              "power_kw": 4.5
+            },
+            { 
+              "timestamp": "2024-01-02T13:00:00Z", 
+              "power_kw": 5.1
+            }
+          ]
+        },
+        {
+          "day": "2024-01-03",
+          "daily_energy_kwh": 38.7,
+          "forecast": [
+            { 
+              "timestamp": "2024-01-03T10:00:00Z", 
+              "power_kw": 3.2
+            },
+            { 
+              "timestamp": "2024-01-03T11:00:00Z", 
+              "power_kw": 4.1
+            }
+          ]
+        }
+      ]
+    }
+    ```
 
 ##### Forecast Data Model
 | Parameter | Type | Unit | Description |
@@ -205,7 +208,7 @@ Generates a 7-day PV production forecast for a specific system belonging to the 
 | `forecast_hours` | Integer | Hours | Total number of forecast hours (always 168 for 7 days). |
 | `forecast_list` | Array | - | A list of daily forecasts (7 days × 24 hours). |
 | `daily_energy_kwh` | Float | Kilowatt-hours (kWh) | Total energy for this day. |
-| `day` | String | - | Date in YYYY-MM-DD format for day. |
+| `day` | String | - | Date in YYYY-MM-DD format for day (no trailing T). |
 | `forecast` | Array | - | 24 hourly forecast points for this day. |
 | `timestamp` | String | ISO 8601 | The UTC timestamp for the forecast point. |
 | `power_kw` | Float | Kilowatts (kW) | The predicted AC power output at the given timestamp. |
