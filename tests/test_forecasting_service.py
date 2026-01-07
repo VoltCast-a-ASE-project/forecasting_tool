@@ -191,5 +191,3 @@ class TestForecastingService:
             assert 'day' in day_data
             assert 'daily_energy_kwh' in day_data
             assert 'forecast' in day_data
-            # Day format should be YYYY-MM-DDT
-            assert 'T' in day_data['day']

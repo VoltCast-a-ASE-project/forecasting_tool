@@ -157,6 +157,8 @@ Generates a 7-day PV production forecast for a specific system belonging to the 
       "days": 7
     }
     ```
+    
+    ```
 *   **Response (200 OK)**:
     ```json
     {
