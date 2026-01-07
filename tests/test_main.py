@@ -6,7 +6,7 @@ from app.services import ForecastingService
 client = TestClient(app)
 
 def test_read_root():
-    response = client.get("/")
+    response = client.get("/forecast/hello")
     assert response.status_code == 200
     assert response.json() == {"message": "Hello from Forecasting Tool Microservice"}
 
