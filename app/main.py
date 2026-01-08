@@ -45,7 +45,7 @@ async def get_current_user(
 def read_root():
     return {"message": "Hello from Forecasting Tool Microservice"}
 
-@app.get("/health")
+@app.get("/forecast/health")
 def health_check():
     """Health check endpoint for Docker/Kubernetes"""
     return {
@@ -77,7 +77,7 @@ def forecast_production(
     
     return response
 
-@app.post("/systems", response_model=PVSystemRead, status_code=status.HTTP_201_CREATED)
+@app.post("/forecast/systems", response_model=PVSystemRead, status_code=status.HTTP_201_CREATED)
 def create_pv_system(
     system: PVSystemCreate, 
     current_user: User = Depends(get_current_user),
@@ -97,7 +97,7 @@ def create_pv_system(
     db.refresh(db_system)
     return db_system
 
-@app.get("/systems", response_model=List[PVSystemRead])
+@app.get("/forecast/systems", response_model=List[PVSystemRead])
 def get_user_systems(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)

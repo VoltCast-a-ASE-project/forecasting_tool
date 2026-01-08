@@ -84,28 +84,28 @@ class TestAuthenticationIntegration:
     
     def test_protected_endpoint_without_token(self, client):
         """Test accessing protected endpoint without token returns 401"""
-        response = client.get("/systems")
+        response = client.get("/forecast/systems")
         assert response.status_code == 401
         assert "Not authenticated" in response.json()["detail"]
     
     def test_protected_endpoint_with_expired_token(self, client, expired_jwt_token):
         """Test accessing protected endpoint with expired token returns 401"""
         headers = {"Authorization": f"Bearer {expired_jwt_token}"}
-        response = client.get("/systems", headers=headers)
+        response = client.get("/forecast/systems", headers=headers)
         assert response.status_code == 401
         assert "Could not validate credentials" in response.json()["detail"]
     
     def test_protected_endpoint_with_invalid_token(self, client, invalid_jwt_token):
         """Test accessing protected endpoint with invalid token returns 401"""
         headers = {"Authorization": f"Bearer {invalid_jwt_token}"}
-        response = client.get("/systems", headers=headers)
+        response = client.get("/forecast/systems", headers=headers)
         assert response.status_code == 401
         assert "Could not validate credentials" in response.json()["detail"]
     
     def test_protected_endpoint_with_valid_token(self, client, valid_jwt_token):
         """Test accessing protected endpoint with valid token returns 200"""
         headers = {"Authorization": f"Bearer {valid_jwt_token}"}
-        response = client.get("/systems", headers=headers)
+        response = client.get("/forecast/systems", headers=headers)
         assert response.status_code == 200
         assert response.json() == []  # Empty list for new user
     
@@ -121,7 +121,7 @@ class TestAuthenticationIntegration:
             "azimuth": 180.0
         }
         
-        response = client.post("/systems", json=system_data, headers=headers)
+        response = client.post("/forecast/systems", json=system_data, headers=headers)
         assert response.status_code == 201
         
         data = response.json()
@@ -145,7 +145,7 @@ class TestAuthenticationIntegration:
             "azimuth": 180.0
         }
         
-        response = client.post("/systems", json=system_data)
+        response = client.post("/forecast/systems", json=system_data)
         assert response.status_code == 401
     
     def test_user_isolation_different_tokens(self, client):
@@ -176,19 +176,19 @@ class TestAuthenticationIntegration:
             "tilt": 35.0,
             "azimuth": 180.0
         }
-        response = client.post("/systems", json=system_data, headers=headers1)
+        response = client.post("/forecast/systems", json=system_data, headers=headers1)
         assert response.status_code == 201
         system_id = response.json()["id"]
         
         # User1 can see their system
-        response = client.get("/systems", headers=headers1)
+        response = client.get("/forecast/systems", headers=headers1)
         assert response.status_code == 200
         assert len(response.json()) == 1
         assert response.json()[0]["id"] == system_id
         
         # User2 cannot see user1's system
         headers2 = {"Authorization": f"Bearer {user2_token}"}
-        response = client.get("/systems", headers=headers2)
+        response = client.get("/forecast/systems", headers=headers2)
         assert response.status_code == 200
         assert len(response.json()) == 0  # Empty list
     
@@ -205,7 +205,7 @@ class TestAuthenticationIntegration:
             "tilt": 35.0,
             "azimuth": 180.0
         }
-        response1 = client.post("/systems", json=system1_data, headers=headers)
+        response1 = client.post("/forecast/systems", json=system1_data, headers=headers)
         assert response1.status_code == 201
         user_id_1 = response1.json()["user_id"]
         
@@ -218,7 +218,7 @@ class TestAuthenticationIntegration:
             "tilt": 30.0,
             "azimuth": 200.0
         }
-        response2 = client.post("/systems", json=system2_data, headers=headers)
+        response2 = client.post("/forecast/systems", json=system2_data, headers=headers)
         assert response2.status_code == 201
         user_id_2 = response2.json()["user_id"]
         
@@ -226,7 +226,7 @@ class TestAuthenticationIntegration:
         assert user_id_1 == user_id_2
         
         # Get all systems for the user
-        response = client.get("/systems", headers=headers)
+        response = client.get("/forecast/systems", headers=headers)
         assert response.status_code == 200
         systems = response.json()
         assert len(systems) == 2
@@ -246,7 +246,7 @@ class TestUserAutoCreation:
         
         # Make authenticated request
         headers = {"Authorization": f"Bearer {valid_jwt_token}"}
-        response = client.get("/systems", headers=headers)
+        response = client.get("/forecast/systems", headers=headers)
         assert response.status_code == 200
         
         # Verify user was created
