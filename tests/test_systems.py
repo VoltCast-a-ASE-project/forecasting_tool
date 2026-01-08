@@ -24,7 +24,7 @@ def test_create_pv_system_success(client, db_session: Session, test_user, auth_h
     }
 
     # 2. Act: Make the POST request to the endpoint
-    response = client.post("/systems", json=system_data, headers=auth_headers)
+    response = client.post("/forecast/systems", json=system_data, headers=auth_headers)
 
     # 3. Assert: Check the response and the database
     assert response.status_code == status.HTTP_201_CREATED
@@ -56,7 +56,7 @@ def test_create_pv_system_unauthorized(client):
     }
 
     # 2. Act: Make the POST request without auth headers
-    response = client.post("/systems", json=system_data)
+    response = client.post("/forecast/systems", json=system_data)
 
     # 3. Assert: The request should be rejected
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -76,7 +76,7 @@ def test_create_pv_system_invalid_data(client, auth_headers):
     }
 
     # 2. Act: Make the POST request
-    response = client.post("/systems", json=system_data, headers=auth_headers)
+    response = client.post("/forecast/systems", json=system_data, headers=auth_headers)
 
     # 3. Assert: The request should be rejected due to validation error
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
@@ -102,7 +102,7 @@ def test_get_user_systems_success(client, db_session: Session, test_user, auth_h
     db_session.commit()
 
     # 2. Act: Make the GET request
-    response = client.get("/systems", headers=auth_headers)
+    response = client.get("/forecast/systems", headers=auth_headers)
 
     # 3. Assert: Check the response
     assert response.status_code == status.HTTP_200_OK
@@ -118,7 +118,7 @@ def test_get_user_systems_empty(client, auth_headers):
     # 1. Arrange: No systems created for the user
 
     # 2. Act: Make the GET request
-    response = client.get("/systems", headers=auth_headers)
+    response = client.get("/forecast/systems", headers=auth_headers)
 
     # 3. Assert: Check the response
     assert response.status_code == status.HTTP_200_OK
@@ -140,7 +140,7 @@ def test_create_pv_system_invalid_latitude(client, auth_headers):
     }
 
     # 2. Act: Make the POST request
-    response = client.post("/systems", json=system_data, headers=auth_headers)
+    response = client.post("/forecast/systems", json=system_data, headers=auth_headers)
 
     # 3. Assert: The request should be rejected due to latitude validation error
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
@@ -163,7 +163,7 @@ def test_create_pv_system_invalid_longitude(client, auth_headers):
     }
 
     # 2. Act: Make the POST request
-    response = client.post("/systems", json=system_data, headers=auth_headers)
+    response = client.post("/forecast/systems", json=system_data, headers=auth_headers)
 
     # 3. Assert: The request should be rejected due to longitude validation error
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
@@ -216,7 +216,7 @@ def test_create_pv_system_valid_coordinates_at_poles_and_dateline(client, auth_h
 
     for i, system_data in enumerate(test_cases):
         # 2. Act: Make the POST request
-        response = client.post("/systems", json=system_data, headers=auth_headers)
+        response = client.post("/forecast/systems", json=system_data, headers=auth_headers)
         
         # 3. Assert: The request should succeed
         assert response.status_code == status.HTTP_201_CREATED
